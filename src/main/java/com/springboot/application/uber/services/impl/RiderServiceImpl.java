@@ -11,6 +11,7 @@ import com.springboot.application.uber.exceptions.ResourceNotFoundException;
 import com.springboot.application.uber.repositories.RideRequestRepository;
 import com.springboot.application.uber.repositories.RiderRepository;
 import com.springboot.application.uber.services.DriverService;
+import com.springboot.application.uber.services.RatingService;
 import com.springboot.application.uber.services.RideService;
 import com.springboot.application.uber.services.RiderService;
 import com.springboot.application.uber.strategies.RideStrategyManager;
@@ -35,6 +36,7 @@ public class RiderServiceImpl implements RiderService {
     private final RiderRepository riderRepository;
     private final RideService rideService;
     private final DriverService driverService;
+    private final RatingService ratingService;
 
     @Override
     @Transactional
@@ -75,7 +77,17 @@ public class RiderServiceImpl implements RiderService {
 
     @Override
     public DriverDto rateDriver(Long rideId, Integer rating) {
-        return null;
+        Ride ride = rideService.getRideById(rideId);
+        Rider rider = getCurrentRider();
+
+        if(!rider.equals(ride.getRider())) {
+            throw new RuntimeException("Rider is not valid");
+        }
+
+        if(!ride.getRideStatus().equals(RideStatus.ENDED)) {
+            throw new RuntimeException("Ride status is not ENDED hence cannot get rating, status: "+ride.getRideStatus());
+        }
+        return ratingService.rateDriver(ride, rating);
     }
 
     @Override

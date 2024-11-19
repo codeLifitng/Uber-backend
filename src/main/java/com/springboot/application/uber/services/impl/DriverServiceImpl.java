@@ -6,14 +6,13 @@ import com.springboot.application.uber.dto.RiderDto;
 import com.springboot.application.uber.entities.Driver;
 import com.springboot.application.uber.entities.Ride;
 import com.springboot.application.uber.entities.RideRequest;
+import com.springboot.application.uber.entities.Rider;
 import com.springboot.application.uber.entities.enums.RideRequestStatus;
 import com.springboot.application.uber.entities.enums.RideStatus;
 import com.springboot.application.uber.exceptions.ResourceNotFoundException;
 import com.springboot.application.uber.repositories.DriverRepository;
-import com.springboot.application.uber.services.DriverService;
-import com.springboot.application.uber.services.PaymentService;
-import com.springboot.application.uber.services.RideRequestService;
-import com.springboot.application.uber.services.RideService;
+import com.springboot.application.uber.repositories.RiderRepository;
+import com.springboot.application.uber.services.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -32,6 +31,12 @@ public class DriverServiceImpl implements DriverService {
     private final RideService rideService;
     private final ModelMapper modelMapper;
     private final PaymentService paymentService;
+    private final RatingService ratingService;
+
+    @Override
+    public Driver createNewDriver(Driver driver) {
+        return driverRepository.save(driver);
+    }
 
     @Override
     @Transactional
@@ -91,6 +96,7 @@ public class DriverServiceImpl implements DriverService {
         Ride savedRide = rideService.updateRideStatus(ride, RideStatus.ONGOING);
 
         paymentService.createNewPayment(savedRide);
+        ratingService.createNewRating(savedRide);
         return modelMapper.map(savedRide, RideDto.class);
     }
 
@@ -118,7 +124,18 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public RiderDto rateRider(Long rideId, Integer rating) {
-        return null;
+        Ride ride = rideService.getRideById(rideId);
+        Driver driver = getCurrentDriver();
+
+        if(!driver.equals(ride.getDriver())) {
+            throw new RuntimeException("Driver is not the owner of this ride");
+        }
+
+        if(!ride.getRideStatus().equals(RideStatus.ENDED)) {
+            throw new RuntimeException("Ride status is not ENDED hence cannot get rating, status: "+ride.getRideStatus());
+        }
+
+        return ratingService.rateRider(ride, rating);
     }
 
     @Override
