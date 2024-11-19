@@ -1,6 +1,9 @@
 package com.springboot.application.uber.controllers;
 
-import com.springboot.application.uber.dto.*;
+import com.springboot.application.uber.dto.DriverDto;
+import com.springboot.application.uber.dto.RideDto;
+import com.springboot.application.uber.dto.RideStartDto;
+import com.springboot.application.uber.dto.RiderDto;
 import com.springboot.application.uber.services.DriverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
