@@ -51,3 +51,4 @@ public class Ride {
     private LocalDateTime endedAt;
 
 }
+
